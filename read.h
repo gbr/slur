@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "types.h"
-#include "mpc.h"
+#include "mpc/mpc.h"
 #include "evaluate.h"
 
 #define BASE 10

@@ -30,8 +30,8 @@ hash_table_t* hash_table(int size) {
 	return ht;
 }
 
-uint hash(hash_table_t* ht, char* sym) {
-	uint hval = 0;
+unsigned int hash(hash_table_t* ht, char* sym) {
+	unsigned int hval = 0;
 
 	/* for each character, we multiply the old hash by
 	 * 31 and add the current character.
@@ -48,10 +48,13 @@ uint hash(hash_table_t* ht, char* sym) {
 
 list_t* lookup_symbol(hash_table_t* ht, char* sym) {
 	list_t* sym_list;
-	uint hval = hash(ht, sym);
+	unsigned int hval = hash(ht, sym);
 
-	for (sym_list = ht->table[hval]; sym_list != NULL) {
-		if (strcmp(sym, sym_list->str) == 0) { return sym_list; }
+	for (sym_list = ht->table[hval]; sym_list != NULL;
+		 sym_list = sym_list->next) {
+		if (strcmp(sym, sym_list->sym) == 0) {
+			return sval_copy(sym_list->val);
+		}
 	}
 	return NULL;
 }
@@ -233,6 +236,7 @@ sval* sval_add(sval* v, sval* x) {
 	return v;
 }
 
+/* TODO incorporate hash table into this */
 sval* senv_get(senv *e, sval* k) {
 	/* return a match if it exists */
 	for (int i = 0; i < e->count; i++) {
@@ -246,6 +250,7 @@ sval* senv_get(senv *e, sval* k) {
 		return sval_err("unbound symbol '%s'", k->sym);
 	}
 }
+
 
 void senv_put(senv* e, sval* k, sval* v) {
 	/* pre-check if variable already exists */

@@ -66,7 +66,7 @@ struct senv {
 
 char* stype_name(int sval_enum);
 hash_table_t* hash_table(int size);
-uint hash(hash_table_t* ht, char* sym);
+unsigned int hash(hash_table_t* ht, char* sym);
 list_t* lookup_string(hash_table_t* hashtable, char* sym);
 sval* sval_lambda(sval* formals, sval* body);
 sval* sval_int(long x);

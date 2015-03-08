@@ -1,7 +1,7 @@
 #ifndef PARSING_H
 #define PARSING_H
 
-#include "mpc.h"
+#include "mpc/mpc.h"
 #include "read.h"
 #include "print.h"
 #include "evaluate.h"
