@@ -191,7 +191,6 @@ sval* sval_add(sval* v, sval* x) {
 	return v;
 }
 
-/* TODO incorporate hash table into this */
 sval* senv_get(senv *e, sval* k) {
 	/* return a match if it exists */
 	for (int i = 0; i < e->count; i++) {
@@ -242,7 +241,7 @@ sval* sval_pop(sval* v, int i) {
 
 	v->count--;
 	v->cell = realloc(v->cell, sizeof(sval*) * v->count);
-	SASSERT_ALLOC_MEM(v->cell);
+	// SASSERT_ALLOC_MEM(v->cell);
 	return x;
 }
 

@@ -18,16 +18,16 @@ int main(int argc, char** argv) {
   mpc_parser_t* slur    = mpc_new("slur");
 
     /* Grammar definition */
-  static const char* grammar = "                      \
-  integer : /-?[0-9]+/ ;                              \
-  decimal : /-?[0-9]*\\.[0-9]+/;                      \
-  number  : <decimal> | <integer> ;                   \
-  symbol  : /[a-zA-Z0-9_+\\-*\\/\\\\=<>!&]+/ ;        \
-  qexpr   : '{' <expr>* '}' ;                         \
-  sexpr   : '(' <expr>* ')' ;                         \
-  expr    : <number> | <symbol> | <sexpr> | <qexpr> ; \
-  slur    : /^/ <expr>* /$/ ;                         \
-  ";
+  static const char* grammar = "                            \
+      integer : /-?[0-9]+/ ;                                \
+      decimal : /-?[0-9]*\\.[0-9]+/;                        \
+      number  : <decimal> | <integer> ;                     \
+      symbol  : /[a-zA-Z0-9_+\\-*\\/\\\\=<>!&]+/ ;          \
+      qexpr   : '{' <expr>* '}' ;                           \
+      sexpr   : '(' <expr>* ')' ;                           \
+      expr    : <number> | <symbol> | <sexpr> | <qexpr> ;   \
+      slur    : /^/ <expr>* /$/ ;                           \
+      ";
 
   mpca_lang(MPCA_LANG_DEFAULT, grammar, integer, decimal,
     number, symbol, qexpr, sexpr, expr, slur);

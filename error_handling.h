@@ -37,8 +37,8 @@
 
 #define SASSERT_ALLOC_MEM(ptr) \
   do { \
-    if (!ptr) { \
-      fprintf(stderr, "memory failure\n"); \
+    if (ptr == NULL) { \
+      fprintf(stderr, "memory failure at %s:%i\n", __FILE__, __LINE__); \
       exit(EXIT_FAILURE); \
     } \
   } while (0)
