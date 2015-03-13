@@ -2,23 +2,23 @@
 
 int main(int argc, char** argv) {
 
-	const char* SLUR 		= "Slur";
-	const char* SLUR_VER  	= "v0.0.0.1.1";
-	const char* EXIT_HINT 	= "Press Ctrl+C to exit";
-	const char* REPL_PROMPT = "slur> ";
+    const char* SLUR        = "Slur";
+    const char* SLUR_VER    = "v0.0.0.1.1";
+    const char* EXIT_HINT   = "Press Ctrl+C to exit";
+    const char* REPL_PROMPT = "slur> ";
 
-	/* Parser definitions */
+    /* Parser definitions */
   mpc_parser_t* integer = mpc_new("integer");
   mpc_parser_t* decimal = mpc_new("decimal");
-  mpc_parser_t* number 	= mpc_new("number");
-  mpc_parser_t* symbol	= mpc_new("symbol");
+  mpc_parser_t* number  = mpc_new("number");
+  mpc_parser_t* symbol  = mpc_new("symbol");
   mpc_parser_t* qexpr   = mpc_new("qexpr");
-  mpc_parser_t* sexpr 	= mpc_new("sexpr");
-  mpc_parser_t* expr 		= mpc_new("expr");
-  mpc_parser_t* slur 		= mpc_new("slur");
+  mpc_parser_t* sexpr   = mpc_new("sexpr");
+  mpc_parser_t* expr    = mpc_new("expr");
+  mpc_parser_t* slur    = mpc_new("slur");
 
-	/* Grammar definition */
-  static const char* grammar = "                            \
+    /* Grammar definition */
+  static const char* grammar = "                      \
   integer : /-?[0-9]+/ ;                              \
   decimal : /-?[0-9]*\\.[0-9]+/;                      \
   number  : <decimal> | <integer> ;                   \
@@ -42,16 +42,16 @@ int main(int argc, char** argv) {
       char* input = readline(REPL_PROMPT);
       add_history(input);
 
-		/* parse input */
+        /* parse input */
       mpc_result_t res;
       if (mpc_parse("<stdin>", input, slur, &res)) {
-			/* success */
+            /* success */
           sval* x = sval_eval(e, sval_read(res.output));
           sval_println(x);
           sval_del(x);
           mpc_ast_delete(res.output);
       } else {
-			/* failure */
+            /* failure */
          mpc_err_print(res.error);
          mpc_err_delete(res.error);
      }
@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
  }
  senv_del(e);
 
-	/* undefine and delete parsers */
+    /* undefine and delete parsers */
  mpc_cleanup(5, number, symbol, sexpr, expr, slur);
 
  return 0;

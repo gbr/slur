@@ -14,15 +14,15 @@
 
 /* Fake readline function */
 char* readline(char* prompt) {
-	fputs(prompt, stdout);
-	fgets(buffer, sizeof buffer, stdin);
+    fputs(prompt, stdout);
+    fgets(buffer, sizeof buffer, stdin);
 
-	size_t bufsiz = strlen(buffer);
-	char* cpy = malloc(bufsiz + 1);
-	SASSERT_ALLOC_MEM(cpy);
-	strcpy(cpy, buffer);
-	cpy[bufsize-1] = '\0';
-	return cpy;
+    size_t bufsiz = strlen(buffer);
+    char* cpy = malloc(bufsiz + 1);
+    SASSERT_ALLOC_MEM(cpy);
+    strcpy(cpy, buffer);
+    cpy[bufsize-1] = '\0';
+    return cpy;
 }
 
 /* Fake add_history function */

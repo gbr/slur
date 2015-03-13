@@ -14,51 +14,6 @@ char* stype_name(int sval_type) {
 	}
 }
 
-/* hash table functions */
-hash_table_t* hash_table(int size) {
-	if (size < 1) { return NULL; }
-
-	hash_table_t* ht = malloc(sizeof(hash_table_t));
-	SASSERT_ALLOC_MEM(ht);
-
-	ht->table = malloc(sizeof(list_t*) * size);
-	SASSERT_ALLOC_MEM(ht->table);
-
-	for (int i = 0; i < size; i++) { ht->table[i] = NULL; }
-
-	ht->size = size;
-	return ht;
-}
-
-unsigned int hash(hash_table_t* ht, char* sym) {
-	unsigned int hval = 0;
-
-	/* for each character, we multiply the old hash by
-	 * 31 and add the current character.
-	 */
-     for (; *sym != '\0'; sym++) {
-     	hval = *sym + (hval << 5) - hval;
-     }
-
-    /* return the hash value mod the hashtable size so
-	 * that it will fit into the necessary range
-     */ 
-     return hval % ht->size;
-}
-
-list_t* lookup_symbol(hash_table_t* ht, char* sym) {
-	list_t* sym_list;
-	unsigned int hval = hash(ht, sym);
-
-	for (sym_list = ht->table[hval]; sym_list != NULL;
-		 sym_list = sym_list->next) {
-		if (strcmp(sym, sym_list->sym) == 0) {
-			return sval_copy(sym_list->val);
-		}
-	}
-	return NULL;
-}
-
 /* Slur value functions */
 
 /* constructor for user-defined sval functions */

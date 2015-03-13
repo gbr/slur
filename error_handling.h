@@ -17,8 +17,8 @@
 
 #define SASSERT_ARG_COUNT(args, num, func) \
   do { \
-	  SASSERT(args, args->count == num, \
-	  	"function '%s' passed incorrect number of arguments. got %i, expected %i.", \
+      SASSERT(args, args->count == num, \
+        "function '%s' passed incorrect number of arguments. got %i, expected %i.", \
       func, args->count, num); \
   } while (0)
 
@@ -37,7 +37,7 @@
 
 #define SASSERT_ALLOC_MEM(ptr) \
   do { \
-  	if (!ptr) { \
+    if (!ptr) { \
       fprintf(stderr, "memory failure\n"); \
       exit(EXIT_FAILURE); \
     } \

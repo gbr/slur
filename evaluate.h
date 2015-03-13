@@ -19,7 +19,7 @@ sval* builtin_cons(senv* e, sval* a);
 sval* builtin_len(senv* e, sval* a);
 sval* builtin_init(senv* e, sval* a);
 void senv_add_builtin(senv* e, char* name,
-	sbuiltin func);
+    sbuiltin func);
 void senv_add_builtins(senv* e);
 sval* builtin_def(senv* e, sval* a);
 sval* builtin_put(senv* e, sval* a);
