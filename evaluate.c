@@ -238,7 +238,7 @@ sval* builtin_var(senv* e, sval* a, char* func) {
 // sval* builtin_cmp(senv* e, sval* a, char* op) {
 //  SASSERT_ARG_COUNT(a, 2, op);
 
-//  /* ensure all arguments are numbers */
+  /* ensure all arguments are numbers */
 //  for (int i = 0; i < a->count; i++) {
 //      SASSERT(a, a->cell[i]->type == SVAL_INT
 //          || a->cell[i]->type == SVAL_DEC,
@@ -295,10 +295,6 @@ sval* builtin_head(senv* e, sval* a) {
 
     sval* v = sval_take(a, 0);
     while(v->count > 1) { sval_del(sval_pop(v, 1)); }
-    /* NOTE: modified from original for efficiency */
-    // sval* x = sval_take(v, 0);
-    // sval* q = sval_qexpr();
-    // sval_add(q, x);
 
     return v;
 }

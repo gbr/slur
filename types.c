@@ -241,7 +241,6 @@ sval* sval_pop(sval* v, int i) {
 
 	v->count--;
 	v->cell = realloc(v->cell, sizeof(sval*) * v->count);
-	// SASSERT_ALLOC_MEM(v->cell);
 	return x;
 }
 
