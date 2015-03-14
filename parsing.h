@@ -5,6 +5,7 @@
 #include "read.h"
 #include "print.h"
 #include "evaluate.h"
+#include "types.h"
 
 #ifdef _WIN32
 #include <string.h>
