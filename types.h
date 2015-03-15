@@ -74,7 +74,7 @@ sval* sval_sym(char *s);
 sval* sval_sexpr();
 sval* sval_qexpr();
 sval* sval_fun(char* name, sbuiltin func);
-sval* sval_bool(bool cond);
+sval* sval_bool(int x);
 senv* senv_new();
 void sval_del(sval *v);
 void senv_del(senv* e);

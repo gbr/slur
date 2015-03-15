@@ -3,11 +3,12 @@
 /* slur value decode */
 char* stype_name(int sval_type) {
 	switch (sval_type) {
-		case SVAL_ERR: return "error";
-		case SVAL_INT: return "integer";
-		case SVAL_DEC: return "double";
-		case SVAL_SYM: return "symbol";
-		case SVAL_FUN: return "function";
+		case SVAL_ERR:   return "error";
+		case SVAL_INT:   return "integer";
+		case SVAL_DEC:   return "double";
+        case SVAL_BOOL:  return "bool";
+		case SVAL_SYM:   return "symbol";
+		case SVAL_FUN:   return "function";
 		case SVAL_SEXPR: return "s-expression";
 		case SVAL_QEXPR: return "q-expression";
 		default: return "unknown type";
@@ -117,13 +118,13 @@ sval* sval_fun(char* name, sbuiltin func) {
 	return v;
 }
 
-// sval* sval_bool(bool cond) {
-// 	sval* v = malloc(sizeof(sval));
-// 	SASSERT_ALLOC_MEM(v);
-// 	v->type = SVAL_BOOL;
-// 	v->cond = cond;
-// 	return v;
-// }
+sval* sval_bool(int x) {
+	sval* v = malloc(sizeof(sval));
+	SASSERT_ALLOC_MEM(v);
+	v->type = SVAL_BOOL;
+	v->cond = x == 0 ? false : true;
+	return v;
+}
 
 senv* senv_new() {
 	senv* e = malloc(sizeof(senv));
@@ -247,7 +248,7 @@ sval* sval_pop(sval* v, int i) {
 sval* sval_take(sval* v, int i) {
 	sval* x = sval_pop(v, i);
 	sval_del(v);
-	return x; 
+	return x;
 }
 
 sval* sval_copy(sval* v) {
@@ -257,7 +258,7 @@ sval* sval_copy(sval* v) {
 
 	switch (v->type) {
 		/* copy functions and numbers directly */
-		case SVAL_FUN: 
+		case SVAL_FUN:
 		if (v->builtin) {
 			x->builtin = v->builtin;
 		} else {
@@ -275,7 +276,7 @@ sval* sval_copy(sval* v) {
 		case SVAL_ERR:
 			x->err = malloc(strlen(v->err)+1);
 			SASSERT_ALLOC_MEM(x->err);
-			strcpy(x->err, v->err); break;		
+			strcpy(x->err, v->err); break;
 
 		case SVAL_SYM:
 			x->sym = malloc(strlen(v->sym)+1);

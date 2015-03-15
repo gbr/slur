@@ -120,6 +120,39 @@ sval* sval_call(senv* e, sval* f, sval* a) {
     }
 }
 
+bool sval_eq(sval *x, sval *y) {
+    if (x->type != y->type) { return false; }
+
+    /* compare based on type */
+    switch (x->type) {
+        case SVAL_INT: return (x->num.nt == y->num.nt);
+        case SVAL_DEC: return (x->num.dec == y->num.dec);
+
+        case SVAL_ERR: return (strcmp(x->err, y->err) == 0);
+        case SVAL_SYM: return (strcmp(x->sym, y->sym) == 0);
+
+        /* if builtin, simple compare; othw, formals and body */
+        case SVAL_FUN:
+                       if (x->builtin || y->builtin) {
+                           return x->builtin == y->builtin;
+                       } else {
+                           return sval_eq(x->formals, y->formals)
+                               && sval_eq(x->body, y->body);
+                       }
+
+        case SVAL_QEXPR:
+        case SVAL_SEXPR:
+                       if (x->count != y->count) { return false; }
+                       for (int i = 0; i < x->count; i++) {
+                           /* if any element unequal, return false */
+                           if (!sval_eq(x->cell[i], y->cell[i])) { return false; }
+                       }
+                       return true;
+        break;
+    }
+    return false;
+}
+
 sval* builtin_add(senv* e, sval* a) {
     return builtin_op(e, a, "+");
 }
@@ -235,58 +268,127 @@ sval* builtin_var(senv* e, sval* a, char* func) {
     return sval_sexpr();
 }
 
-// sval* builtin_cmp(senv* e, sval* a, char* op) {
-//  SASSERT_ARG_COUNT(a, 2, op);
+sval* builtin_gt(senv* e, sval* a) {
+    return builtin_ord(e, a, ">");
+}
 
-  /* ensure all arguments are numbers */
-//  for (int i = 0; i < a->count; i++) {
-//      SASSERT(a, a->cell[i]->type == SVAL_INT
-//          || a->cell[i]->type == SVAL_DEC,
-//          "function '%s' passed the incorrect type for argument %i. "
-//          "got %s, expected number", op, i, stype_name(a->cell[i]->type));
-//  }
+sval* builtin_lt(senv* e, sval* a) {
+    return builtin_ord(e, a, "<");
+}
 
-//  sval* x = sval_pop(a, 0);
-//  sval* cond = sval_bool();
+sval* builtin_ge(senv* e, sval* a) {
+    return builtin_ord(e, a, ">=");
+}
 
-//  while (a->count > 0) {
-//      sval* y = sval_pop(a, 0);
+sval* builtin_le(senv* e, sval* a) {
+    return builtin_ord(e, a, "<=");
+}
+sval* builtin_eq(senv* e, sval* a) {
+    return builtin_cmp(e, a, "==");
+}
 
-//      if (x->type == SVAL_INT && y->type == SVAL_INT) {
-//          if (strcmp(op, ">")  == 0) { cond->bool = x->num.nt > y->num.nt; }
-//          if (strcmp(op, "gt") == 0) { cond->bool = x->num.nt > y->num.nt; }
-//          if (strcmp(op, "<")  == 0) { cond->bool = x->num.nt < y->num.nt; }
-//          if (strcmp(op, "lt") == 0) { cond->bool = x->num.nt < y->num.nt; }
-//          if (strcmp(op, ">=") == 0) { cond->bool = x->num.nt >= y->num.nt; }
-//          if (strcmp(op, "ge") == 0) { cond->bool = x->num.nt >= y->num.nt; }
-//          if (strcmp(op, "<=") == 0) { cond->bool = x->num.nt <= y->num.nt; }
-//          if (strcmp(op, "le") == 0) { cond->bool = x->num.nt <= y->num.nt; }
-//          if (strcmp(op, "==") == 0) { cond->bool = x->num.nt == y->num.nt; }
-//          if (strcmp(op, "eq") == 0) { cond->bool = x->num.nt == y->num.nt; }
-//      }
-//      else {
-//          if (x->type == SVAL_INT) {
-//              x->type = SVAL_DEC;
-//              x->num.dec = (double)x->num.nt;
-//          }
-//          if (y->type == SVAL_INT) { y->num.dec = (double)y->num.nt; }
+sval* builtin_ne(senv* e, sval* a) {
+    return builtin_cmp(e, a, "/=");
+}
+sval* builtin_ord(senv* e, sval* a, char* op) {
+    SASSERT_ARG_COUNT(a, 2, op);
+   
+   /* ensure all arguments are numbers */
+    for (int i = 0; i < a->count; i++) {
+        SASSERT(a, a->cell[i]->type == SVAL_INT
+            || a->cell[i]->type == SVAL_DEC,
+            "function '%s' passed the incorrect type for argument %i. "
+            "got %s, expected number", op, i,
+            stype_name(a->cell[i]->type));
+    }
+   
+    int v;
+   
+    if (a->cell[0]->type == SVAL_INT && a->cell[1]->type == SVAL_INT) {
+        if (strcmp(op, ">")  == 0) {
+           v = a->cell[0]->num.nt > a->cell[1]->num.nt;
+        }
+        if (strcmp(op, "<")  == 0) {
+            v = a->cell[0]->num.nt < a->cell[1]->num.nt; 
+        }
+        if (strcmp(op, ">=") == 0) {
+            v = a->cell[0]->num.nt >= a->cell[1]->num.nt;
+        }
+        if (strcmp(op, "<=") == 0) {
+            v = a->cell[0]->num.nt <= a->cell[1]->num.nt;
+        }
+        if (strcmp(op, "==") == 0) {
+            v = a->cell[0]->num.nt == a->cell[1]->num.nt;
+        }
+        if (strcmp(op, "/=") == 0) {
+            v = a->cell[0]->num.nt != a->cell[1]->num.nt;
+        }
+    }
+    else {
+        if (a->cell[0]->type == SVAL_INT) {
+            a->cell[0]->type = SVAL_DEC;
+            a->cell[0]->num.dec = (double)a->cell[0]->num.nt;
+        }
+        if (a->cell[1]->type == SVAL_INT) {
+            a->cell[1]->num.dec = (double)a->cell[1]->num.nt;
+        }
 
-//          if (strcmp(op, ">")  == 0) { cond->bool = x->num.dec > y->num.dec; }
-//          if (strcmp(op, "gt") == 0) { cond->bool = x->num.dec > y->num.dec; }
-//          if (strcmp(op, "<")  == 0) { cond->bool = x->num.dec < y->num.dec; }
-//          if (strcmp(op, "lt") == 0) { cond->bool = x->num.dec < y->num.dec; }
-//          if (strcmp(op, ">=") == 0) { cond->bool = x->num.dec >= y->num.dec; }
-//          if (strcmp(op, "ge") == 0) { cond->bool = x->num.dec >= y->num.dec; }
-//          if (strcmp(op, "<=") == 0) { cond->bool = x->num.dec <= y->num.dec; }
-//          if (strcmp(op, "le") == 0) { cond->bool = x->num.dec <= y->num.dec; }
-//          if (strcmp(op, "==") == 0) { cond->bool = x->num.dec == y->num.dec; }
-//          if (strcmp(op, "eq") == 0) { cond->bool = x->num.dec == y->num.dec; }
-//      }
-//      sval_del(y);
-//  }
+        if (strcmp(op, ">")  == 0) {
+            v = a->cell[0]->num.dec > a->cell[1]->num.dec;
+        }
+        if (strcmp(op, "<")  == 0) {
+            v = a->cell[0]->num.dec < a->cell[1]->num.dec;
+        }
+        if (strcmp(op, ">=") == 0) {
+            v = a->cell[0]->num.dec >= a->cell[1]->num.dec;
+        }
+        if (strcmp(op, "<=") == 0) {
+            v = a->cell[0]->num.dec <= a->cell[1]->num.dec;
+        }
+        if (strcmp(op, "==") == 0) {
+            v = a->cell[0]->num.dec == a->cell[1]->num.dec;
+        }
+        if (strcmp(op, "/=") == 0) {
+            v = a->cell[0]->num.dec != a->cell[1]->num.dec;
+        }
+    }
+   
+    sval_del(a); return sval_bool(v);
+}
 
-//  sval_del(a); return x;
-// }
+sval* builtin_cmp(senv* e, sval* a, char* op) {
+    SASSERT_ARG_COUNT(a, 2, op);
+
+    int v;
+    if (strcmp(op, "==") == 0) {
+        v = sval_eq(a->cell[0], a->cell[1]);
+    }
+    if (strcmp(op, "/=") == 0) {
+        v = !sval_eq(a->cell[0], a->cell[1]);
+    }
+    sval_del(a); return sval_bool(v);
+}
+
+sval* builtin_if(senv* e, sval* a) {
+    SASSERT_ARG_COUNT(a, 3, "if");
+    SASSERT_ARG_TYPE(a, 0, SVAL_BOOL, "if");
+    SASSERT_ARG_TYPE(a, 1, SVAL_QEXPR, "if");
+    SASSERT_ARG_TYPE(a, 2, SVAL_QEXPR, "if");
+
+    /* mark expressions as evaluable */
+    sval *x;
+    a->cell[1]->type = SVAL_SEXPR;
+    a->cell[2]->type = SVAL_SEXPR;
+
+    /* if cond is true, eval first expr; othw second */
+    if (a->cell[0]->cond) {
+        x = sval_eval(e, sval_pop(a, 1));
+    } else {
+        x = sval_eval(e, sval_pop(a, 2));
+    }
+
+    sval_del(a); return x;
+}
 
 sval* builtin_head(senv* e, sval* a) {
     SASSERT_ARG_COUNT(a, 1, "head");
@@ -314,15 +416,6 @@ sval* builtin_list(senv* e, sval* a) {
     return a;
 }
 
-// TODO: fix this so that it evalutes the following:
-/*
-lispy> eval (head {5 10 11 15})
-5
-lispy> eval (head {+ - + - * /})
-<function>
-lispy> (eval (head {+ - + - * /})) 10 20
-30
-*/
 sval* builtin_eval(senv* e, sval* a) {
     SASSERT_ARG_COUNT(a, 1, "eval");
     SASSERT_ARG_TYPE(a, 0, SVAL_QEXPR, "eval");
@@ -412,6 +505,21 @@ void senv_add_builtins(senv* e) {
     senv_add_builtin(e, "-", builtin_sub);
     senv_add_builtin(e, "*", builtin_mul);
     senv_add_builtin(e, "/", builtin_div);
+
+    /* comparator functions */
+    senv_add_builtin(e, "if", builtin_if);
+    senv_add_builtin(e, ">",  builtin_gt);
+    senv_add_builtin(e, "gt", builtin_gt);
+    senv_add_builtin(e, "<",  builtin_lt);
+    senv_add_builtin(e, "lt", builtin_lt);
+    senv_add_builtin(e, "<=", builtin_ge);
+    senv_add_builtin(e, "ge", builtin_ge);
+    senv_add_builtin(e, ">=", builtin_le);
+    senv_add_builtin(e, "le", builtin_le);
+    senv_add_builtin(e, "/=", builtin_ne);
+    senv_add_builtin(e, "ne", builtin_ne);
+    senv_add_builtin(e, "==", builtin_eq);
+    senv_add_builtin(e, "eq", builtin_eq);
 }
 
 sval* builtin_def(senv* e, sval* a) {
