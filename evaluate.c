@@ -292,7 +292,7 @@ sval* builtin_ne(senv* e, sval* a) {
 }
 sval* builtin_ord(senv* e, sval* a, char* op) {
     SASSERT_ARG_COUNT(a, 2, op);
-   
+
    /* ensure all arguments are numbers */
     for (int i = 0; i < a->count; i++) {
         SASSERT(a, a->cell[i]->type == SVAL_INT
@@ -301,15 +301,15 @@ sval* builtin_ord(senv* e, sval* a, char* op) {
             "got %s, expected number", op, i,
             stype_name(a->cell[i]->type));
     }
-   
+
     int v;
-   
+
     if (a->cell[0]->type == SVAL_INT && a->cell[1]->type == SVAL_INT) {
         if (strcmp(op, ">")  == 0) {
            v = a->cell[0]->num.nt > a->cell[1]->num.nt;
         }
         if (strcmp(op, "<")  == 0) {
-            v = a->cell[0]->num.nt < a->cell[1]->num.nt; 
+            v = a->cell[0]->num.nt < a->cell[1]->num.nt;
         }
         if (strcmp(op, ">=") == 0) {
             v = a->cell[0]->num.nt >= a->cell[1]->num.nt;
@@ -352,7 +352,7 @@ sval* builtin_ord(senv* e, sval* a, char* op) {
             v = a->cell[0]->num.dec != a->cell[1]->num.dec;
         }
     }
-   
+
     sval_del(a); return sval_bool(v);
 }
 
@@ -520,6 +520,7 @@ void senv_add_builtins(senv* e) {
     senv_add_builtin(e, "ne", builtin_ne);
     senv_add_builtin(e, "==", builtin_eq);
     senv_add_builtin(e, "eq", builtin_eq);
+
 }
 
 sval* builtin_def(senv* e, sval* a) {
@@ -559,4 +560,3 @@ sval* builtin_env(senv* e, sval* a) {
     }
     return v;
 }
-
