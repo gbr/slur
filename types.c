@@ -6,6 +6,7 @@ char* stype_name(int sval_type) {
 		case SVAL_ERR:   return "error";
 		case SVAL_INT:   return "integer";
 		case SVAL_DEC:   return "double";
+		case SVAL_STR:   return "string";
         case SVAL_BOOL:  return "bool";
 		case SVAL_SYM:   return "symbol";
 		case SVAL_FUN:   return "function";
@@ -32,7 +33,7 @@ sval* sval_lambda(sval* formals, sval* body) {
 	return v;
 }
 
-/* slur value number constructor */
+/* slur value integer constructor */
 sval* sval_int(long x) {
 	sval* v = malloc(sizeof(sval));
 	SASSERT_ALLOC_MEM(v);
@@ -41,6 +42,7 @@ sval* sval_int(long x) {
 	return v;
 }
 
+/* slur value decimal constructor */
 sval* sval_dec(double x) {
 	sval* v = malloc(sizeof(sval));
 	SASSERT_ALLOC_MEM(v);
@@ -118,12 +120,22 @@ sval* sval_fun(char* name, sbuiltin func) {
 	return v;
 }
 
+/* slur value boolean constructor */
 sval* sval_bool(int x) {
 	sval* v = malloc(sizeof(sval));
 	SASSERT_ALLOC_MEM(v);
 	v->type = SVAL_BOOL;
 	v->cond = x == 0 ? false : true;
 	return v;
+}
+
+sval* sval_str(char *s) {
+    sval* v = malloc(sizeof(sval));
+    SASSERT_ALLOC_MEM(v);
+    v->type = SVAL_STR;
+    v->str = malloc(strlen(s)+1);
+    strcpy(v->str, s);
+    return v;
 }
 
 senv* senv_new() {
@@ -139,8 +151,11 @@ senv* senv_new() {
 void sval_del(sval *v) {
 
 	switch(v->type) {
-		case SVAL_INT: break;
-		case SVAL_DEC: break;
+		case SVAL_INT:  break;
+		case SVAL_DEC:  break;
+        case SVAL_BOOL: break;
+
+        case SVAL_STR:  free(v->str); break;
 
 		case SVAL_FUN:
 			if (!v->builtin) {
@@ -155,11 +170,11 @@ void sval_del(sval *v) {
 
 		case SVAL_QEXPR:
 		case SVAL_SEXPR:
-		for (int i = 0; i < v->count; i++) {
-			sval_del(v->cell[i]);
-		}
-		free(v->cell);
-		break;
+                         for (int i = 0; i < v->count; i++) {
+                             sval_del(v->cell[i]);
+                         }
+                         free(v->cell);
+                         break;
 	}
 	free(v);
 }
@@ -273,6 +288,10 @@ sval* sval_copy(sval* v) {
 		case SVAL_DEC: x->num.dec = v->num.dec; break;
 
 		/* copy strings using strcpy and malloc */
+		case SVAL_STR:
+			x->str = malloc(strlen(v->str)+1);
+			SASSERT_ALLOC_MEM(x->str);
+			strcpy(x->str, v->str); break;
 		case SVAL_ERR:
 			x->err = malloc(strlen(v->err)+1);
 			SASSERT_ALLOC_MEM(x->err);

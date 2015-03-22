@@ -21,6 +21,7 @@ void sval_print(sval* v) {
         case SVAL_BOOL:
                          if (v->cond == true) { printf("true"); }
                          else { printf("false"); } break;
+        case SVAL_STR:   sval_print_str(v); break;
         case SVAL_ERR:   fprintf(stderr, "Error: %s", v->err); break;
         case SVAL_SYM:   printf("%s", v->sym); break;
         case SVAL_SEXPR: sval_expr_print(v, '(', ')'); break;
@@ -34,6 +35,14 @@ void sval_print(sval* v) {
                          }
                          break;
     }
+}
+
+void sval_print_str(sval* v) {
+    char* esc_str = malloc(strlen(v->str)+1);
+    strcpy(esc_str, v->str);
+    esc_str = mpcf_escape(esc_str);
+    printf("\"%s\"", esc_str);
+    free(esc_str);
 }
 
 void sval_println(sval* v) { sval_print(v); putchar('\n'); }

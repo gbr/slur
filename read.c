@@ -16,12 +16,25 @@ sval* sval_read_dec(mpc_ast_t* t) {
     : sval_err("%s is an invalid number", t->contents);
 }
 
+sval* sval_read_str(mpc_ast_t* t) {
+    /* cut off the final quote char */
+    t->contents[strlen(t->contents)-1] = '\0';
+    /* copy the string without the first quote char */
+    char* unescaped = malloc(strlen(t->contents+1)+1);
+    strcpy(unescaped, t->contents+1);
+    unescaped = mpcf_unescape(unescaped);
+    sval* str = sval_str(unescaped);
+    free(unescaped);
+    return str;
+}
+
 sval* sval_read(mpc_ast_t* t) {
 
-    /* directly convert numbers and symbols */
+    /* directly convert numbers, strings and symbols */
     if (strstr(t->tag, "integer")) { return sval_read_int(t); }
     if (strstr(t->tag, "decimal")) { return sval_read_dec(t); }
-    if (strstr(t->tag, "symbol")) { return sval_sym(t->contents); }
+    if (strstr(t->tag, "string"))  { return sval_read_str(t); }
+    if (strstr(t->tag, "symbol"))  { return sval_sym(t->contents); }
 
     /* if root (>) or sexpr then create empty list */
     sval* x = NULL;
@@ -36,6 +49,7 @@ sval* sval_read(mpc_ast_t* t) {
             if (strcmp(t->children[i]->contents, "{") == 0) { continue; }
             if (strcmp(t->children[i]->contents, "}") == 0) { continue; }
             if (strcmp(t->children[i]->tag,  "regex") == 0) { continue; }
+            if (strstr(t->tag, "comment"))                  { continue; }
             x = sval_add(x, sval_read(t->children[i]));
         }
 

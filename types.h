@@ -10,7 +10,7 @@
 #include "error_handling.h"
 
 /* possible sval types */
-enum {  SVAL_ERR, SVAL_INT, SVAL_DEC, SVAL_BOOL,
+enum {  SVAL_ERR, SVAL_INT, SVAL_DEC,   SVAL_BOOL, SVAL_STR,
         SVAL_SYM, SVAL_FUN, SVAL_SEXPR, SVAL_QEXPR };
 
 struct sval;
@@ -41,11 +41,12 @@ struct sval {
     int type;
 
     /* basic */
-    // really, all of these could be in a union
+    // TODO: change all to be in a union
     char* err;
     char* sym;
     val num;
     bool cond;
+    char* str;
 
     /* function */
     sbuiltin builtin;
@@ -71,6 +72,7 @@ sval* sval_int(long x);
 sval* sval_dec(double x);
 sval* sval_err(char* fmt, ...);
 sval* sval_sym(char *s);
+sval* sval_str(char *s);
 sval* sval_sexpr();
 sval* sval_qexpr();
 sval* sval_fun(char* name, sbuiltin func);

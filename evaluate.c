@@ -128,6 +128,7 @@ bool sval_eq(sval *x, sval *y) {
         case SVAL_INT: return (x->num.nt == y->num.nt);
         case SVAL_DEC: return (x->num.dec == y->num.dec);
 
+        case SVAL_STR: return (strcmp(x->str, y->str) == 0);
         case SVAL_ERR: return (strcmp(x->err, y->err) == 0);
         case SVAL_SYM: return (strcmp(x->sym, y->sym) == 0);
 
@@ -416,6 +417,69 @@ sval* builtin_list(senv* e, sval* a) {
     return a;
 }
 
+sval* builtin_print(senv* e, sval* a) {
+
+    /* print each argument */
+    for (int i = 0; i < a->count; i++) {
+        sval_print(a->cell[i]); putchar(' ');
+    }
+
+    putchar('\n'); sval_del(a);
+
+    return sval_sexpr();
+}
+
+sval* builtin_error(senv* e, sval* a) {
+    SASSERT_ARG_COUNT(a, 1, "error");
+    SASSERT_ARG_TYPE(a, 0, SVAL_STR, "error");
+
+    sval* err = sval_err(a->cell[0]->str);
+
+    sval_del(a);
+    return err;
+}
+
+sval* builtin_load(senv* e, sval* a) {
+    SASSERT_ARG_COUNT(a, 1, "load");
+    SASSERT_ARG_TYPE(a, 0, SVAL_STR, "load");
+
+    /* parse file */
+    mpc_result_t r;
+    if (mpc_parse_contents(a->cell[0]->str, slur, &r)) {
+
+        /* read contents */
+        sval* expr = sval_read(r.output);
+        mpc_ast_delete(r.output);
+
+        /* evaluate each expression */
+        while (expr->count) {
+            sval* x = sval_eval(e, sval_pop(expr, 0));
+            /* if eval leads to error, print it */
+            if (x->type == SVAL_ERR) { sval_println(x); }
+            sval_del(x);
+        }
+
+        /* delete expressions and arguments */
+        sval_del(expr);
+        sval_del(a);
+
+        /* return empty list */
+        return sval_sexpr();
+
+    } else {
+        /* get parse error as string */
+        char* err_msg = mpc_err_string(r.error);
+        mpc_err_delete(r.error);
+
+        sval* err = sval_err("could not load library %s", err_msg);
+        free(err_msg);
+        sval_del(a);
+
+        /* cleanup and error return */
+        return err;
+    }
+}
+
 sval* builtin_eval(senv* e, sval* a) {
     SASSERT_ARG_COUNT(a, 1, "eval");
     SASSERT_ARG_TYPE(a, 0, SVAL_QEXPR, "eval");
@@ -520,6 +584,11 @@ void senv_add_builtins(senv* e) {
     senv_add_builtin(e, "ne", builtin_ne);
     senv_add_builtin(e, "==", builtin_eq);
     senv_add_builtin(e, "eq", builtin_eq);
+
+    /* string functions */
+    senv_add_builtin(e, "load",  builtin_load);
+    senv_add_builtin(e, "error", builtin_error);
+    senv_add_builtin(e, "print", builtin_print);
 
 }
 

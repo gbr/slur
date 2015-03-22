@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "mpc/mpc.h"
+#include "parsing.h"
 #include "types.h"
 
 sval* sval_eval_sexpr(senv* e, sval* v);
@@ -18,6 +20,7 @@ sval* builtin_if(senv* e, sval* a);
 sval* builtin_head(senv* e, sval* a);
 sval* builtin_tail(senv* e, sval* a);
 sval* builtin_list(senv* e, sval* a);
+sval* builtin_load(senv* e, sval* a);
 sval* builtin_eval(senv* e, sval* a);
 sval* builtin_join(senv* e, sval* a);
 sval* builtin_cons(senv* e, sval* a);
