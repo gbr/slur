@@ -45,12 +45,12 @@ sval* sval_read(mpc_ast_t* t) {
     /* fill list with valid expressions */
     for (int i = 0; i < t->children_num; i++) {
         if (strcmp(t->children[i]->contents, "(") == 0) { continue; }
-            if (strcmp(t->children[i]->contents, ")") == 0) { continue; }
-            if (strcmp(t->children[i]->contents, "{") == 0) { continue; }
-            if (strcmp(t->children[i]->contents, "}") == 0) { continue; }
-            if (strcmp(t->children[i]->tag,  "regex") == 0) { continue; }
-            if (strstr(t->tag, "comment"))                  { continue; }
-            x = sval_add(x, sval_read(t->children[i]));
+        if (strcmp(t->children[i]->contents, ")") == 0) { continue; }
+        if (strcmp(t->children[i]->contents, "{") == 0) { continue; }
+        if (strcmp(t->children[i]->contents, "}") == 0) { continue; }
+        if (strcmp(t->children[i]->tag,  "regex") == 0) { continue; }
+        if (strstr(t->children[i]->tag,  "comment"))    { continue; }
+        x = sval_add(x, sval_read(t->children[i]));
         }
 
         return x;

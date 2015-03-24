@@ -370,6 +370,38 @@ sval* builtin_cmp(senv* e, sval* a, char* op) {
     sval_del(a); return sval_bool(v);
 }
 
+sval* builtin_not(senv* e, sval* a) {
+    SASSERT_ARG_COUNT(a, 1, "not");
+    SASSERT_ARG_TYPE(a, 0, SVAL_BOOL, "not");
+
+    sval* x;
+    x = sval_bool(!a->cell[0]->cond);
+
+    sval_del(a); return x;
+}
+
+sval* builtin_or(senv* e, sval* a) {
+    SASSERT_ARG_COUNT(a, 2, "or");
+    SASSERT_ARG_TYPE(a, 0, SVAL_BOOL, "or");
+    SASSERT_ARG_TYPE(a, 1, SVAL_BOOL, "or");
+
+    sval* x;
+    x = sval_bool(a->cell[0]->cond || a->cell[1]->cond);
+
+    sval_del(a); return x;
+}
+
+sval* builtin_and(senv* e, sval* a) {
+    SASSERT_ARG_COUNT(a, 2, "and");
+    SASSERT_ARG_TYPE(a, 0, SVAL_BOOL, "and");
+    SASSERT_ARG_TYPE(a, 1, SVAL_BOOL, "and");
+
+    sval* x;
+    x = sval_bool(a->cell[0]->cond && a->cell[1]->cond);
+
+    sval_del(a); return x;
+}
+
 sval* builtin_if(senv* e, sval* a) {
     SASSERT_ARG_COUNT(a, 3, "if");
     SASSERT_ARG_TYPE(a, 0, SVAL_BOOL, "if");
@@ -377,7 +409,7 @@ sval* builtin_if(senv* e, sval* a) {
     SASSERT_ARG_TYPE(a, 2, SVAL_QEXPR, "if");
 
     /* mark expressions as evaluable */
-    sval *x;
+    sval* x;
     a->cell[1]->type = SVAL_SEXPR;
     a->cell[2]->type = SVAL_SEXPR;
 
@@ -440,44 +472,45 @@ sval* builtin_error(senv* e, sval* a) {
 }
 
 sval* builtin_load(senv* e, sval* a) {
-    SASSERT_ARG_COUNT(a, 1, "load");
-    SASSERT_ARG_TYPE(a, 0, SVAL_STR, "load");
+  SASSERT_ARG_COUNT(a, 1, "load");
+  SASSERT_ARG_TYPE(a, 0 , SVAL_STR, "load");
 
-    /* parse file */
-    mpc_result_t r;
-    if (mpc_parse_contents(a->cell[0]->str, slur, &r)) {
+  /* Parse File given by string name */
+  mpc_result_t r;
+  if (mpc_parse_contents(a->cell[0]->str, slur, &r)) {
 
-        /* read contents */
-        sval* expr = sval_read(r.output);
-        mpc_ast_delete(r.output);
+    /* Read contents */
+    sval* expr = sval_read(r.output);
+    mpc_ast_delete(r.output);
 
-        /* evaluate each expression */
-        while (expr->count) {
-            sval* x = sval_eval(e, sval_pop(expr, 0));
-            /* if eval leads to error, print it */
-            if (x->type == SVAL_ERR) { sval_println(x); }
-            sval_del(x);
-        }
-
-        /* delete expressions and arguments */
-        sval_del(expr);
-        sval_del(a);
-
-        /* return empty list */
-        return sval_sexpr();
-
-    } else {
-        /* get parse error as string */
-        char* err_msg = mpc_err_string(r.error);
-        mpc_err_delete(r.error);
-
-        sval* err = sval_err("could not load library %s", err_msg);
-        free(err_msg);
-        sval_del(a);
-
-        /* cleanup and error return */
-        return err;
+    /* Evaluate each Expression */
+    while (expr->count) {
+      sval* x = sval_eval(e, sval_pop(expr, 0));
+      /* If Evaluation leads to error print it */
+      if (x->type == SVAL_ERR) { sval_println(x); }
+      sval_del(x);
     }
+
+    /* Delete expressions and arguments */
+    sval_del(expr);
+    sval_del(a);
+
+    /* Return empty list */
+    return sval_sexpr();
+
+  } else {
+    /* Get Parse Error as String */
+    char* err_msg = mpc_err_string(r.error);
+    mpc_err_delete(r.error);
+
+    /* Create new error message using it */
+    sval* err = sval_err("Could not load Library %s", err_msg);
+    free(err_msg);
+    sval_del(a);
+
+    /* Cleanup and return error */
+    return err;
+  }
 }
 
 sval* builtin_eval(senv* e, sval* a) {
@@ -573,17 +606,16 @@ void senv_add_builtins(senv* e) {
     /* comparator functions */
     senv_add_builtin(e, "if", builtin_if);
     senv_add_builtin(e, ">",  builtin_gt);
-    senv_add_builtin(e, "gt", builtin_gt);
     senv_add_builtin(e, "<",  builtin_lt);
-    senv_add_builtin(e, "lt", builtin_lt);
     senv_add_builtin(e, "<=", builtin_ge);
-    senv_add_builtin(e, "ge", builtin_ge);
     senv_add_builtin(e, ">=", builtin_le);
-    senv_add_builtin(e, "le", builtin_le);
     senv_add_builtin(e, "/=", builtin_ne);
-    senv_add_builtin(e, "ne", builtin_ne);
     senv_add_builtin(e, "==", builtin_eq);
-    senv_add_builtin(e, "eq", builtin_eq);
+
+    /* logical functions */
+    senv_add_builtin(e, "not", builtin_not);
+    senv_add_builtin(e, "or",  builtin_or);
+    senv_add_builtin(e, "and", builtin_and);
 
     /* string functions */
     senv_add_builtin(e, "load",  builtin_load);

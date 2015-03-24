@@ -39,10 +39,11 @@ int main(int argc, char** argv) {
     senv* e = senv_new();
     senv_add_builtins(e);
 
-    printf("%s version %s\n", SLUR, VERSION);
-    printf("%s\n", EXIT_HINT);
-
     if (argc == 1) {
+
+        printf("%s version %s\n", SLUR, VERSION);
+        printf("%s\n", EXIT_HINT);
+
         for (;;) {
             char* input = readline(REPL_PROMPT);
             add_history(input);
